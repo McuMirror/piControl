@@ -7,6 +7,7 @@
 #include <linux/mod_devicetable.h>
 #include <linux/pinctrl/pinconf-generic.h>
 #include <linux/platform_device.h>
+#include <linux/version.h>
 
 #include "revpi_common.h"
 #include "revpi_core.h"
@@ -124,8 +125,13 @@ static int piIoThread(void *data)
 
 	/* Note: we use this timer for both, a fixed cycle interval length and
 	   measurement of the cycle time */
+#if KERNEL_VERSION(6, 13, 0) > LINUX_VERSION_CODE
 	hrtimer_init(&cycle->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	cycle->timer.function = wake_up_sleeper;
+#else
+	hrtimer_setup(&cycle->timer, wake_up_sleeper, CLOCK_MONOTONIC,
+		      HRTIMER_MODE_ABS);
+#endif
 	init_completion(&cycle->timer_expired);
 	hrtimer_cancel(&cycle->timer);
 
